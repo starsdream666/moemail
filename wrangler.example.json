@@ -1,9 +1,12 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "moemail",
-  "compatibility_date": "2024-03-20",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-01-03",
   "compatibility_flags": ["nodejs_compat"],
-  "pages_build_output_dir": ".vercel/output/static",
+  "assets": {
+    "directory": ".open-next/assets"
+  },
   "d1_databases": [
     {
       "binding": "DB",
@@ -16,6 +19,12 @@
     {
       "binding": "SITE_CONFIG",
       "id": "${KV_NAMESPACE_ID}"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "NEXT_INC_CACHE_R2_BUCKET",
+      "bucket_name": "moemail-cache"
     }
   ]
 }

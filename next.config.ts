@@ -1,14 +1,10 @@
 import withPWA from 'next-pwa'
 import createNextIntlPlugin from 'next-intl/plugin'
-import { setupDevPlatform } from '@cloudflare/next-on-pages/next-dev';
+import { initOpenNextCloudflareForDev } from '@opennextjs/cloudflare'
 
-async function setup() {
-  if (process.env.NODE_ENV === 'development') {
-    await setupDevPlatform()
-  }
+if (process.env.NODE_ENV === 'development') {
+  initOpenNextCloudflareForDev()
 }
-
-setup()
 
 const withNextIntl = createNextIntlPlugin('./app/i18n/request.ts')
 

@@ -3,8 +3,6 @@ import { register } from "@/lib/auth"
 import { authSchema, AuthSchema } from "@/lib/validation"
 import { verifyTurnstileToken } from "@/lib/turnstile"
 
-export const runtime = "edge"
-
 export async function POST(request: Request) {
   try {
     const json = await request.json() as AuthSchema
