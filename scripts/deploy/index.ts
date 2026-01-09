@@ -26,7 +26,7 @@ const validateEnvironment = () => {
   const missing = requiredEnvVars.filter((varName) => !process.env[varName]);
 
   if (missing.length > 0) {
-    throw new Error(
+    throw new 错误(
       `Missing required environment variables: ${missing.join(", ")}`
     );
   }
@@ -60,7 +60,7 @@ const setupConfigFile = (examplePath: string, targetPath: string) => {
           json.name = PROJECT_NAME;
           break;
         case "wrangler.email.json":
-          json.name = `${PROJECT_NAME}-email-receiver-worker`;
+          json。name = `${PROJECT_NAME}-email-receiver-worker`;
           break;
         case "wrangler.cleanup.json":
           json.name = `${PROJECT_NAME}-cleanup-worker`;
@@ -277,42 +277,37 @@ const checkAndCreatePages = async () => {
 const pushPagesSecret = () => {
   console.log("🔐 Pushing environment secrets to Pages...");
 
-  // 定义运行时所需的环境变量列表
   const runtimeEnvVars = ['AUTH_GITHUB_ID', 'AUTH_GITHUB_SECRET', 'AUTH_GOOGLE_ID', 'AUTH_GOOGLE_SECRET', 'AUTH_SECRET'];
 
   try {
-    // 确保.env文件存在
     if (!existsSync(resolve('.env'))) {
       setupEnvFile();
     }
 
-    // 创建一个临时文件，只包含运行时所需的环境变量
     const envContent = readFileSync(resolve('.env'), 'utf-8');
-    const runtimeEnvFile = resolve('.env.runtime');
+    const runtimeEnvFile = resolve('.env.runtime.json');
 
-    // 从.env文件中提取运行时变量
-    const runtimeEnvContent = envContent
-      .split('\n')
-      .filter(line => {
-        const trimmedLine = line.trim();
-        // 跳过注释和空行
-        if (!trimmedLine || trimmedLine.startsWith('#')) return false;
+    // 从 .env 中解析 key/value，构造 JSON 对象
+    const runtimeSecrets: Record<string, string> = {};
+    envContent.split('\n').forEach((line) => {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) return;
+      const idx = trimmed.indexOf('=');
+      if (idx === -1) return;
+      const key = trimmed.slice(0, idx).trim();
+      let val = trimmed.slice(idx + 1).trim().replace(/^["']|["']$/g, '');
+      if (runtimeEnvVars.includes(key) && val.length > 0) {
+        runtimeSecrets[key] = val;
+      }
+    });
 
-        // 检查是否为运行时所需的环境变量
-        for (const varName of runtimeEnvVars) {
-          if (line.startsWith(`${varName} =`) || line.startsWith(`${varName}=`)) {
-            const value = line.substring(line.indexOf('=') + 1).trim().replace(/^["']|["']$/g, '');
-            return value.length > 0;
-          }
-        }
-        return false;
-      })
-      .join('\n');
+    if (Object.keys(runtimeSecrets).length === 0) {
+      console.log("⚠️ No runtime secrets found to push, skipping.");
+      return;
+    }
 
-    // 写入临时文件
-    writeFileSync(runtimeEnvFile, runtimeEnvContent);
-
-    // 使用临时文件推送secrets
+    // 写入 JSON 文件并调用 wrangler bulk
+    writeFileSync(runtimeEnvFile, JSON.stringify(runtimeSecrets, null, 2));
     execSync(`pnpm dlx wrangler pages secret bulk ${runtimeEnvFile}`, { stdio: "inherit" });
 
     // 清理临时文件
@@ -324,7 +319,6 @@ const pushPagesSecret = () => {
     throw error;
   }
 };
-
 /**
  * 部署Pages应用
  */
